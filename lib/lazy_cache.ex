@@ -8,31 +8,36 @@ defmodule LazyCache do
   @doc """
   Start scheduling the works for clearing the DB.
 
-  ## Examples
-
-      iex> LazyCache.start
-      {:ok, #PID<0.112.0>}
-
   """
   def start do
     GenServer.start_link(__MODULE__, %{})
   end
 
+  defp check_valid_keep_alive(keepAliveInMillis) do
+      keepAliveInMillis != nil
+      and is_integer(keepAliveInMillis)
+      and keepAliveInMillis > 0
+  end
+
   def insert(key, value, keepAliveInMillis) do
-    is_inserted =
-      :ets.insert(
-        :buckets_registry,
-        {key, value, :os.system_time(:milli_seconds) + keepAliveInMillis}
-      )
+    if not check_valid_keep_alive(keepAliveInMillis) do
+      {:error, "Keep Alive Time is not valid. Should be a positive Integer."}
+    else
+      is_inserted =
+        :ets.insert(
+          :buckets_registry,
+          {key, value, :os.system_time(:milli_seconds) + keepAliveInMillis}
+        )
 
-    get_keyset()
-    |> check_if_key_already_in_keyset(key)
+      get_keyset()
+      |> check_if_key_already_in_keyset(key)
 
-    if is_inserted do
-      append_to_keyset(get_keyset(), key)
+      if is_inserted do
+        append_to_keyset(get_keyset(), key)
+      end
+
+      is_inserted
     end
-
-    is_inserted
   end
 
   def lookup(key) do
