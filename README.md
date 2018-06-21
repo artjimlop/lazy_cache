@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/artjimlop/lazy_cache.svg?branch=master)](https://travis-ci.org/artjimlop/lazy_cache)
+
 # LazyCache
 
 UNDER DEVELOPMENT
