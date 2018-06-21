@@ -1,6 +1,6 @@
 # LazyCache
 
-**TODO: Add description**
+UNDER DEVELOPMENT
 
 ## Installation
 
