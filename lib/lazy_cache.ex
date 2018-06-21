@@ -19,13 +19,17 @@ defmodule LazyCache do
   end
 
   def insert(key, value, keepAliveInMillis) do
-    is_inserted = :ets.insert(:buckets_registry, {key, value, keepAliveInMillis})
+    is_inserted =
+      :ets.insert(
+        :buckets_registry,
+        {key, value, :os.system_time(:milli_seconds) + keepAliveInMillis}
+      )
 
-    :ets.lookup(:key_set, :keys)[:keys]
+    get_keyset()
     |> check_if_key_already_in_keyset(key)
 
     if is_inserted do
-      append_to_keyset(:ets.lookup(:key_set, :keys)[:keys], key)
+      append_to_keyset(get_keyset(), key)
     end
 
     is_inserted
@@ -39,21 +43,21 @@ defmodule LazyCache do
     is_deleted = :ets.delete(:buckets_registry, key)
 
     if is_deleted do
-      delete_from_keyset(:ets.lookup(:key_set, :keys)[:keys], key)
+      delete_from_keyset(get_keyset(), key)
     end
 
     is_deleted
   end
 
   def size() do
-    length(:ets.lookup(:key_set, :keys)[:keys])
+    length(get_keyset())
   end
 
   def clear() do
     if size() == 0 do
       false
     else
-      for key <- :ets.lookup(:key_set, :keys)[:keys], do: delete(key)
+      for key <- get_keyset(), do: delete(key)
       true
     end
   end
@@ -79,6 +83,24 @@ defmodule LazyCache do
     |> update_key_set()
   end
 
+  defp purge(key) do
+    [element] = lookup(key)
+
+    if(elem(element, 2) <= :os.system_time(:milli_seconds)) do
+      delete(key)
+    end
+  end
+
+  defp purge_cache() do
+    if size() > 0 do
+      for key <- get_keyset(), do: purge(key)
+    end
+  end
+
+  defp get_keyset() do
+    :ets.lookup(:key_set, :keys)[:keys]
+  end
+
   @impl true
   def init(state) do
     # Schedule work to be performed on start
@@ -93,6 +115,8 @@ defmodule LazyCache do
   @impl true
   def handle_info(:work, state) do
     # Do the desired work here
+    purge_cache()
+
     # Reschedule once more
     schedule_work()
     {:noreply, state}
