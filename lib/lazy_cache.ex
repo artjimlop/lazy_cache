@@ -6,19 +6,16 @@ defmodule LazyCache do
   """
 
   @doc """
-  Start scheduling the works for clearing the DB.
-
+  Start scheduling the works for clearing the cache.
+  This method should be called before performing any operation.
   """
   def start do
     GenServer.start_link(__MODULE__, %{})
   end
 
-  defp check_valid_keep_alive(keepAliveInMillis) do
-    keepAliveInMillis != nil and
-      (keepAliveInMillis == :keep_alive_forever or
-         (is_integer(keepAliveInMillis) and keepAliveInMillis > 0))
-  end
-
+  @doc """
+  Store anything for a certain amount of time
+  """
   def insert(key, value, keepAliveInMillis) do
     if not check_valid_keep_alive(keepAliveInMillis) do
       {:error,
@@ -41,22 +38,23 @@ defmodule LazyCache do
     end
   end
 
-  defp get_keepalive(keepAliveInMillis) do
-    if keepAliveInMillis == :keep_alive_forever do
-      :keep_alive_forever
-    else
-      :os.system_time(:milli_seconds) + keepAliveInMillis
-    end
-  end
-
+  @doc """
+  Store anything forever
+  """
   def insert(key, value) do
     insert(key, value, :keep_alive_forever)
   end
 
+  @doc """
+  Retrieve anything by its key
+  """
   def lookup(key) do
     :ets.lookup(:buckets_registry, key)
   end
 
+  @doc """
+  Delete anything by its key
+  """
   def delete(key) do
     is_deleted = :ets.delete(:buckets_registry, key)
 
@@ -67,10 +65,16 @@ defmodule LazyCache do
     is_deleted
   end
 
+  @doc """
+  Obtain the number of elements stored in the cache
+  """
   def size() do
     length(get_keyset())
   end
 
+  @doc """
+  Delete everything in the cache
+  """
   def clear() do
     if size() == 0 do
       false
@@ -78,6 +82,20 @@ defmodule LazyCache do
       for key <- get_keyset(), do: delete(key)
       true
     end
+  end
+
+  defp get_keepalive(keepAliveInMillis) do
+    if keepAliveInMillis == :keep_alive_forever do
+      :keep_alive_forever
+    else
+      :os.system_time(:milli_seconds) + keepAliveInMillis
+    end
+  end
+
+  defp check_valid_keep_alive(keepAliveInMillis) do
+    keepAliveInMillis != nil and
+      (keepAliveInMillis == :keep_alive_forever or
+         (is_integer(keepAliveInMillis) and keepAliveInMillis > 0))
   end
 
   defp update_key_set(key_set) do
