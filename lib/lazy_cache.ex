@@ -14,19 +14,20 @@ defmodule LazyCache do
   end
 
   defp check_valid_keep_alive(keepAliveInMillis) do
-      keepAliveInMillis != nil
-      and is_integer(keepAliveInMillis)
-      and keepAliveInMillis > 0
+    keepAliveInMillis != nil and
+      (keepAliveInMillis == :keep_alive_forever or
+         (is_integer(keepAliveInMillis) and keepAliveInMillis > 0))
   end
 
   def insert(key, value, keepAliveInMillis) do
     if not check_valid_keep_alive(keepAliveInMillis) do
-      {:error, "Keep Alive Time is not valid. Should be a positive Integer."}
+      {:error,
+       "Keep Alive Time is not valid. Should be a positive Integer or :keep_alive_forever."}
     else
       is_inserted =
         :ets.insert(
           :buckets_registry,
-          {key, value, :os.system_time(:milli_seconds) + keepAliveInMillis}
+          {key, value, get_keepalive(keepAliveInMillis)}
         )
 
       get_keyset()
@@ -38,6 +39,18 @@ defmodule LazyCache do
 
       is_inserted
     end
+  end
+
+  defp get_keepalive(keepAliveInMillis) do
+    if keepAliveInMillis == :keep_alive_forever do
+      :keep_alive_forever
+    else
+      :os.system_time(:milli_seconds) + keepAliveInMillis
+    end
+  end
+
+  def insert(key, value) do
+    insert(key, value, :keep_alive_forever)
   end
 
   def lookup(key) do
@@ -128,7 +141,7 @@ defmodule LazyCache do
   end
 
   defp schedule_work() do
-    # In 2 seconds
-    Process.send_after(self(), :work, 2 * 1000)
+    # Each second
+    Process.send_after(self(), :work, 1000)
   end
 end

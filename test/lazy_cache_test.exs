@@ -3,7 +3,7 @@ defmodule LazyCacheTest do
   doctest LazyCache
 
   def keep_alive_error() do
-    "Keep Alive Time is not valid. Should be a positive Integer."
+    "Keep Alive Time is not valid. Should be a positive Integer or :keep_alive_forever."
   end
 
   test "cache is empty when created" do
@@ -105,5 +105,12 @@ defmodule LazyCacheTest do
     LazyCache.start()
     LazyCache.insert("key", "value", 1000)
     assert LazyCache.clear() == true
+  end
+
+  test "ensure data can be stored forever" do
+    LazyCache.start()
+    LazyCache.insert("key", "value")
+    [data] = LazyCache.lookup("key")
+    assert elem(data, 2) == :keep_alive_forever
   end
 end
