@@ -8,13 +8,17 @@ defmodule LazyCache do
   @doc """
   Start scheduling the works for clearing the cache.
   This method should be called before performing any operation.
+
+  Returns `{:ok, PID}`.
   """
   def start do
     GenServer.start_link(__MODULE__, %{})
   end
 
   @doc """
-  Store anything for a certain amount of time
+  Store anything for a certain amount of time.
+
+  Returns a boolean indicating if element has been correctly inserted.
   """
   def insert(key, value, keepAliveInMillis) do
     if not check_valid_keep_alive(keepAliveInMillis) do
@@ -39,21 +43,27 @@ defmodule LazyCache do
   end
 
   @doc """
-  Store anything forever
+  Store anything forever.
+
+  Returns a boolean indicating if element has been correctly inserted.
   """
   def insert(key, value) do
     insert(key, value, :keep_alive_forever)
   end
 
   @doc """
-  Retrieve anything by its key
+  Retrieve anything by its key.
+
+  Returns `[{your_stored_tuple}]`.
   """
   def lookup(key) do
     :ets.lookup(:buckets_registry, key)
   end
 
   @doc """
-  Delete anything by its key
+  Delete anything by its key.
+
+  Returns a boolean indicating if element has been correctly deleted.
   """
   def delete(key) do
     is_deleted = :ets.delete(:buckets_registry, key)
@@ -66,14 +76,18 @@ defmodule LazyCache do
   end
 
   @doc """
-  Obtain the number of elements stored in the cache
+  Obtain the number of elements stored in the cache.
+
+  Returns an integer equals or bigger than zero.
   """
   def size() do
     length(get_keyset())
   end
 
   @doc """
-  Delete everything in the cache
+  Delete everything in the cache.
+
+  Returns a boolean indicating if cache has been correctly cleared.
   """
   def clear() do
     if size() == 0 do

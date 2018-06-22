@@ -26,17 +26,27 @@ The sample
 ```elixir
 {:ok, PID} = LazyCache.start() # starts the cache and its process for auto-clearing expired elements
 
-true = LazyCache.insert(key, value, keep_alive_in_milliseconds) # insert an element into the cache for a certain amount of time
+a_boolean = LazyCache.insert(key, value, keep_alive_in_milliseconds) # insert an element into the cache for a certain amount of time
 
-true = LazyCache.insert(key, value) # this element is going to be stored forever!
+a_boolean = LazyCache.insert(key, value) # this element is going to be stored forever!
 
-true = LazyCache.delete(key) # delete this element
+a_boolean = LazyCache.delete(key) # delete this element
 
-size = LazyCache.size() # how many elements are in my cache?
+an_integer = LazyCache.size() # how many elements are in my cache?
 
-true = LazyCache.clear() # delete everything!
+a_boolean = LazyCache.clear() # delete everything!
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/lazy_cache](https://hexdocs.pm/lazy_cache).
+The documentation can be found at [https://hexdocs.pm/lazy_cache](https://hexdocs.pm/lazy_cache).
+
+## Contributing
+
+Please, feel free to report any issue or contribute to the codebase.
+
+Before creating your pull request, please run `mix test` to make sure nothing is broken!
+
+## License
+
+LazyCache source code is released under GNU General Public License v3.0. The generated contents, however, are under different licenses based on projects used to help render HTML, including CSS, JS, and other assets.
+
+Check the [LICENSE](LICENSE) file for more information.
