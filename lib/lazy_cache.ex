@@ -11,16 +11,17 @@ defmodule LazyCache do
 
   Returns `{:ok, PID}`.
   """
-  def start do
+  @spec start() :: {atom, pid}
+  def start() do
     GenServer.start_link(__MODULE__, %{})
   end
 
   @doc """
-  Store anything for a certain amount of time.
+  Store anything for a certain amount of time or forever if no keep alive time specified
 
   Returns a boolean indicating if element has been correctly inserted.
   """
-  def insert(key, value, keepAliveInMillis) do
+  def insert(key, value, keepAliveInMillis \\ :keep_alive_forever) do
     if not check_valid_keep_alive(keepAliveInMillis) do
       {:error,
        "Keep Alive Time is not valid. Should be a positive Integer or :keep_alive_forever."}
@@ -40,15 +41,6 @@ defmodule LazyCache do
 
       is_inserted
     end
-  end
-
-  @doc """
-  Store anything forever.
-
-  Returns a boolean indicating if element has been correctly inserted.
-  """
-  def insert(key, value) do
-    insert(key, value, :keep_alive_forever)
   end
 
   @doc """
@@ -80,6 +72,7 @@ defmodule LazyCache do
 
   Returns an integer equals or bigger than zero.
   """
+  @spec size() :: integer
   def size() do
     length(get_keyset())
   end
@@ -89,6 +82,7 @@ defmodule LazyCache do
 
   Returns a boolean indicating if cache has been correctly cleared.
   """
+  @spec clear() :: boolean
   def clear() do
     if size() == 0 do
       false
