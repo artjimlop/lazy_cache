@@ -1,6 +1,5 @@
 defmodule LazyCacheTest do
-  use ExUnit.Case
-  doctest LazyCache
+  use ExUnit.Case, async: true
 
   def keep_alive_error() do
     "Keep Alive Time is not valid. Should be a positive Integer or :keep_alive_forever."
@@ -53,32 +52,10 @@ defmodule LazyCacheTest do
     assert LazyCache.size() == 0
   end
 
-  test "should decrease cache size when delete" do
-    LazyCache.start()
-    LazyCache.insert("key", "value", 1000)
-    LazyCache.delete("key")
-    refute LazyCache.size() == 1
-  end
-
   test "ensure data exists when inserted" do
     LazyCache.start()
     LazyCache.insert("key", "value", 1000)
-    [data] = LazyCache.lookup("key")
-    refute data == nil
-  end
-
-  test "ensure data key persists when inserted" do
-    LazyCache.start()
-    LazyCache.insert("key", "value", 1000)
-    [data] = LazyCache.lookup("key")
-    assert elem(data, 0) == "key"
-  end
-
-  test "ensure data value persists when inserted" do
-    LazyCache.start()
-    LazyCache.insert("key", "value", 1000)
-    [data] = LazyCache.lookup("key")
-    assert elem(data, 1) == "value"
+    assert [{"key", "value", _}] = LazyCache.lookup("key")
   end
 
   test "ensure data cannot be lookout when deleted" do
@@ -93,12 +70,6 @@ defmodule LazyCacheTest do
     LazyCache.insert("key", "value", 1000)
     LazyCache.clear()
     assert LazyCache.lookup("key") == []
-  end
-
-  test "nothing is cleared when no data in cache" do
-    LazyCache.start()
-    LazyCache.clear()
-    assert LazyCache.clear() == false
   end
 
   test "if there is data, cache is correctly cleared" do
